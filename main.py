@@ -3,38 +3,47 @@ import requests
 import re
 import pandas as pd
 import os
+import time as t    
 
-import time as t
-
+# Featch data from url
 def get_url(i):
     if i == 0:
-            url = requests.get('https://www.prnewswire.com/apac/rss/news-releases-list.rss')    # PR Newswire
+            # PR Newswire RSS Feed
+            url = requests.get('https://www.prnewswire.com/apac/rss/news-releases-list.rss')   
         
     elif i == 1:
-            url = requests.get('https://www.newswire.com/newsroom/rss/business-business-news')  # Business Newswire
+            # Business Newswire RSS Feed
+            url = requests.get('https://www.newswire.com/newsroom/rss/business-business-news')  
             
     elif i == 2:
-            url = requests.get('https://www.globenewswire.com/RssFeed/orgclass/1/feedTitle/GlobeNewswire%20-%20News%20about%20Public%20Companies')  # Global Newswire --> Public Companies
+            # Global Newswire --> Public Companies RSS Feed
+            url = requests.get('https://www.globenewswire.com/RssFeed/orgclass/1/feedTitle/GlobeNewswire%20-%20News%20about%20Public%20Companies')  
     
     elif i == 3:
-            url = requests.get('https://www.newswire.com/newsroom/rss/industries-industry-news')  # Business Newswire --> Industry News
+            # Business Newswire --> Industry News
+            url = requests.get('https://www.newswire.com/newsroom/rss/industries-industry-news')  
             
     elif i == 4:
-            url = requests.get('https://www.globenewswire.com/RssFeed/subjectcode/27-Mergers%20and%20Acquisitions/feedTitle/GlobeNewswire%20-%20Mergers%20and%20Acquisitions')  # Global Newswire --> Mergers and Acquisitions
+            # Global Newswire --> Mergers and Acquisitions
+            url = requests.get('https://www.globenewswire.com/RssFeed/subjectcode/27-Mergers%20and%20Acquisitions/feedTitle/GlobeNewswire%20-%20Mergers%20and%20Acquisitions')  
     
             
     return url
         
-
+# Continuous Run
 while True:
     i = 0
+    # Loop run for every RSS feed (We have total 5 RSS Feed)
     while(i<5):
+        # Function call
         url = get_url(i)
             
         soup = BeautifulSoup(url.content, 'xml')
-    
+
+        # Get all news of RSS Feed
         entries = soup.find_all('item')
-    
+
+        # List of Keywords that we want to match in news
         keywords = [
             "definitive agreement", "takeover", "takeover speculations", "nearing deal", "consider sale", "proposal", 
             "proposal to acquire", "non binding offer", "exploring sale", "including sale", "exploring option", "in talks", 
@@ -49,6 +58,7 @@ while True:
         # Initialize a list to store the filtered entries
         filtered_entries = []
 
+        # Get Titel, Summary, Link, Time of each News
         for entry in entries:
             title = entry.title.text
             summary = entry.description.text
@@ -76,7 +86,9 @@ while True:
             # Concatenate the existing DataFrame with the new DataFrame
             combined_df = pd.concat([existing_df, new_df])
             # Drop duplicates based on the 'Link' column
+            # Insted of Link we can use News Title also 
             combined_df = combined_df.drop_duplicates(subset='Link')
+            
         else:
             # If the CSV file doesn't exist, the combined DataFrame is just the new DataFrame
             combined_df = new_df
@@ -87,6 +99,9 @@ while True:
         # Print the updated DataFrame
         print(combined_df)
         
+        # Increase the itration to featch data of next RSS Feed
         i += 1
-
-    t.sleep(10)
+    
+    
+    # Program is stop to run for 5 minutes 
+    t.sleep(5*60)   
