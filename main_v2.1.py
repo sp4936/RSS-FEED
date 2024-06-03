@@ -7,6 +7,7 @@ import time as t
 import datetime
 import spacy
 
+iteration = 1
 # Load spaCy model
 nlp = spacy.load('en_core_web_sm')
 
@@ -124,5 +125,7 @@ while True:
         # Increase the iteration to fetch data of the next RSS Feed
         i += 1
 
-    # Program is stopped to run for 5 minutes
-    t.sleep(0.1)
+    print(iteration,'--------------------------------------------------------------------')
+    iteration += 1
+    # Program is stopped to run for 0.01 sec
+    t.sleep(0.01)
