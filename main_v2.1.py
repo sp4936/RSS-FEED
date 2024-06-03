@@ -7,36 +7,19 @@ import time as t
 import datetime
 import spacy
 
-'''
---> spaCy provides pre-trained models for various languages, which include tokenization, 
-    part-of-speech tagging, named entity recognition, and more. 
-    These models are trained on large datasets and are ready to use out of the box.
-    
---> spaCy excels in NER, identifying and categorizing entities in text such as 
-    names, dates, locations, organisation and more.
-'''
-
 # Load spaCy model
 nlp = spacy.load('en_core_web_sm')
 
 # Fetch data from URL
 def get_url(i):
-    if i == 0:
-        # PR Newswire RSS Feed
-        url = requests.get('https://www.prnewswire.com/apac/rss/news-releases-list.rss')
-    elif i == 1:
-        # Business Newswire RSS Feed
-        url = requests.get('https://www.newswire.com/newsroom/rss/business-business-news')
-    elif i == 2:
-        # Global Newswire --> Public Companies RSS Feed
-        url = requests.get('https://www.globenewswire.com/RssFeed/orgclass/1/feedTitle/GlobeNewswire%20-%20News%20about%20Public%20Companies')
-    elif i == 3:
-        # Business Newswire --> Industry News
-        url = requests.get('https://www.newswire.com/newsroom/rss/industries-industry-news')
-    elif i == 4:
-        # Global Newswire --> Mergers and Acquisitions
-        url = requests.get('https://www.globenewswire.com/RssFeed/subjectcode/27-Mergers%20and%20Acquisitions/feedTitle/GlobeNewswire%20-%20Mergers%20and%20Acquisitions')
-    return url
+    urls = [
+        'https://www.prnewswire.com/apac/rss/news-releases-list.rss',
+        'https://www.newswire.com/newsroom/rss/business-business-news',
+        'https://www.globenewswire.com/RssFeed/orgclass/1/feedTitle/GlobeNewswire%20-%20News%20about%20Public%20Companies',
+        'https://www.newswire.com/newsroom/rss/industries-industry-news',
+        'https://www.globenewswire.com/RssFeed/subjectcode/27-Mergers%20and%20Acquisitions/feedTitle/GlobeNewswire%20-%20Mergers%20and%20Acquisitions'
+    ]
+    return requests.get(urls[i])
 
 # Extract key terms using spaCy NER
 def extract_key_terms(text):
@@ -84,9 +67,8 @@ while True:
         # Initialize a list to store the filtered entries
         filtered_entries = []
 
-        # now = datetime.now()
+        # Get current system time
         now = datetime.datetime.now()
-        # current_time = now.strftime("%H:%M:%S")
 
         # Get Title, Summary, Link, Time of each News
         for entry in entries:
@@ -98,37 +80,40 @@ while True:
             # Check if any keyword is present in the title or summary
             matched_keywords = [keyword for keyword in keywords if re.search(keyword, title.lower()) or re.search(keyword, summary.lower())]
             if matched_keywords:
+                key_terms = extract_key_terms(title + ' ' + summary)
                 announcement_id = get_announcement_id(title, summary)
                 filtered_entries.append({
                     'Announcement ID': announcement_id,
                     'Time': time,
                     'System Time': now,
                     'Keywords': ', '.join(matched_keywords),
+                    'Key Terms': ', '.join(key_terms),
                     'Title': title,
                     'Summary': summary,
                     'Link': link
                     
                 })
-                
-       
+
         # Create a DataFrame from the filtered entries
         new_df = pd.DataFrame(filtered_entries)
 
         # Define the CSV file path
-        csv_file_path = 'filtered_news.csv'
+        csv_file_path = 'filtered_news_main_v2_1.csv'
 
         if os.path.exists(csv_file_path):
-            # Read the existing CSV file into a DataFrame
-            existing_df = pd.read_csv(csv_file_path)
-            # Concatenate the existing DataFrame with the new DataFrame
-            combined_df = pd.concat([existing_df, new_df])
-            # Drop duplicates based on the 'Link' column
-            combined_df = combined_df.drop_duplicates(subset='Link')
-            #combined_df['time']= pd.to_datetime(combined_df['time'])
+            try:
+                # Read the existing CSV file into a DataFrame
+                existing_df = pd.read_csv(csv_file_path)
+                # Concatenate the existing DataFrame with the new DataFrame
+                combined_df = pd.concat([existing_df, new_df])
+                # Drop duplicates based on the 'Link' column
+                combined_df = combined_df.drop_duplicates(subset='Link')
+            except pd.errors.EmptyDataError:
+                # If the file is empty, just use the new DataFrame
+                combined_df = new_df
         else:
             # If the CSV file doesn't exist, the combined DataFrame is just the new DataFrame
             combined_df = new_df
-            #combined_df['time']= pd.to_datetime(combined_df['time'])
 
         # Save the updated DataFrame back to the CSV file
         combined_df.to_csv(csv_file_path, index=False)
@@ -140,4 +125,4 @@ while True:
         i += 1
 
     # Program is stopped to run for 5 minutes
-    t.sleep(1)
+    t.sleep(300)

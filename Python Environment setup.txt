@@ -2,3 +2,9 @@ python -m venv file_name
 
 file_name\Scripts\activate
 
+for this project:
+.env\Scripts\activate
+
+command for run streamlit :
+streamlit run main_v4.py
+
