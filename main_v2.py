@@ -15,7 +15,7 @@ import spacy
 --> spaCy excels in NER, identifying and categorizing entities in text such as 
     names, dates, locations, organisation and more.
 '''
-
+iteration = 1
 # Load spaCy model
 nlp = spacy.load('en_core_web_sm')
 
@@ -140,4 +140,6 @@ while True:
         i += 1
 
     # Program is stopped to run for 5 minutes
+    print(iteration,'--------------------------------------------------------------------')
+    iteration += 1
     t.sleep(1)

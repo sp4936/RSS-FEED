@@ -24,7 +24,7 @@ def get_url(i):
 # Extract key terms using spaCy NER
 def extract_key_terms(text):
     doc = nlp(text)
-    key_terms = [ent.text for ent in doc.ents if ent.label_ in {'ORG', 'PERSON', 'GPE', 'PRODUCT'}]
+    key_terms = [ent.text for ent in doc.ents if ent.label_ in {'ORG', 'GPE'}]
     return key_terms
 
 # Generate announcement id mapping
@@ -125,4 +125,4 @@ while True:
         i += 1
 
     # Program is stopped to run for 5 minutes
-    t.sleep(300)
+    t.sleep(0.1)
